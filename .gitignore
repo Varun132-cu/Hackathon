@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+debtassist.db
+.pytest_cache/
+.ruff_cache/
+uploads/
+node_modules/
+.vscode/

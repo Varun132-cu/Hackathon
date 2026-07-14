@@ -1,0 +1,13 @@
+borrower_id,borrower_name,phone_number,loan_account_id,emi_amount,days_past_due,consent_to_contact,permitted_to_call,prior_contact_count
+SYN-DF-001,Aarav Test,+917703948146,SYN-LN-9001,12400,7,true,true,1
+SYN-DF-002,Diya Test,+917703948146,SYN-LN-9002,9800,14,true,true,2
+SYN-DF-003,Vihaan Test,+917703948146,SYN-LN-9003,16500,31,true,true,0
+SYN-DF-004,Anaya Test,+917703948146,SYN-LN-9004,7400,4,true,true,1
+SYN-DF-005,Kabir Test,+917703948146,SYN-LN-9005,21000,62,true,true,3
+SYN-DF-006,Myra Test,+917703948146,SYN-LN-9006,11200,19,true,true,1
+SYN-DF-007,Arjun Test,+917703948146,SYN-LN-9007,8900,45,true,true,2
+SYN-DF-008,Saanvi Test,+917703948146,SYN-LN-9008,14300,10,true,true,0
+SYN-DF-009,Ishaan Test,+917703948146,SYN-LN-9009,6800,27,true,true,1
+SYN-DF-010,Kiara Test,+917703948146,SYN-LN-9010,18700,91,true,true,4
+SYN-DF-011,Reyansh Test,+917703948146,SYN-LN-9011,10500,36,true,true,2
+SYN-DF-012,Avni Test,+917703948146,SYN-LN-9012,15200,12,true,true,0

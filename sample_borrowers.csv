@@ -1,0 +1,4 @@
+borrower_id,borrower_name,phone_number,loan_account_id,emi_amount,days_past_due,consent_to_contact,permitted_to_call,prior_contact_count
+BR-1001,Asha Sharma,+919876543210,LN-2001,12400,8,true,true,1
+BR-1002,Rahul Verma,+919876543211,LN-2002,8950,15,true,true,0
+BR-1003,Meera Iyer,+919876543212,LN-2003,7600,3,false,false,0

@@ -1,0 +1,12 @@
+.voice-chip {
+  background: #fff0e9;
+  color: #9a604f;
+  font: 10px "DM Mono", monospace;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.voice-chip.ready {
+  background: #ebf4e5;
+  color: #4a7045;
+}
