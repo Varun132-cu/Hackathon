@@ -1,40 +1,143 @@
-# DebtAssist MVP
+# DebtAssist
 
-A consent-aware repayment reminder backend with CSV import, mock-call processing, explainable engagement scoring, and human-intervention flags. It does **not** make real calls.
+> A consent-aware, context-led voice outreach demo for synthetic repayment scenarios.
+
+DebtAssist combines a React dashboard, FastAPI service, Twilio Media Streams, and OpenAI Realtime to demonstrate a respectful repayment-reminder conversation. It is designed for staff-owned, consented test numbers and synthetic data only.
+
+![DebtAssist workflow](docs/workflow.svg)
+
+## What it demonstrates
+
+- Clean React/Vite operations dashboard with customer profiles, call records, transcripts, outcomes, and human-review flags.
+- CSV validation for consented, eligible customer records.
+- Synthetic profile context per customer: scenario, preferred contact style, and considerate next step.
+- Twilio outbound calling through a bidirectional Media Stream.
+- An English-speaking, context-aware voice agent that verifies identity before discussing the synthetic account.
+- Conversational handling for payment commitments, callback requests, hardship, disputes, opt-outs, and human-agent requests.
+- Audit events, call outcomes, engagement scoring, and escalation signals saved to the dashboard.
+
+## Workflow
+
+1. An operator reviews an eligible synthetic customer profile in the dashboard.
+2. DebtAssist creates an outbound Twilio call.
+3. Twilio connects a secure Media Stream to the FastAPI bridge.
+4. The bridge creates a Realtime voice session with only that profile's synthetic context.
+5. The agent greets, verifies identity, listens, and records a voluntary next step.
+6. The dashboard receives the transcript, outcome, assessment, and any required escalation.
+
+## Stack
+
+| Layer | Technology |
+| --- | --- |
+| Dashboard | React + Vite |
+| API | FastAPI + SQLAlchemy |
+| Local storage | SQLite |
+| Telephony | Twilio Voice + Media Streams |
+| Voice intelligence | OpenAI Realtime API |
+| Tunnel for local testing | ngrok |
 
 ## Run locally
+
+### 1. Install dependencies
 
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+npm install
 ```
 
-Open `http://127.0.0.1:8000/` for the dashboard or `http://127.0.0.1:8000/docs` for the interactive API.
+### 2. Start the API
 
-## Try the workflow
-
-1. Upload `sample_borrowers.csv` to `POST /api/uploads`.
-2. Queue an eligible borrower through `POST /api/call-jobs` with `{"borrower_id":"BR-1001"}`.
-3. Complete the simulated call using `POST /api/calls/{call_id}/complete-mock`:
-
-```json
-{"outcome":"promise_to_pay","transcript":"I can make the payment on Friday. Please send a payment link."}
+```powershell
+py -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Use a transcript such as `"This is a scam, I need to speak to a human agent"` to verify an escalation.
+### 3. Start the dashboard
 
-The SQLite database (`debtassist.db`) is created automatically for local development. Use PostgreSQL and managed secrets before deployment.
+```powershell
+npm run dev
+```
 
-## Controlled Twilio pilot
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). The API health endpoint is available at [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health).
 
-The default mode is `VOICE_PROVIDER=mock`; it cannot call a real phone. For a controlled test only, configure `.env` with `VOICE_PROVIDER=twilio`, `LIVE_CALLS_ENABLED=true`, an HTTPS `PUBLIC_BASE_URL`, a Twilio account SID/auth token, and a verified or purchased `TWILIO_FROM_NUMBER`. Start with staff-owned, consented test numbers. The initial live flow is a short DTMF callback/opt-out IVR; it deliberately does not expose loan information or make AI decisions.
+## Synthetic data
 
-Before enabling a production campaign, add an approved calling-hours/frequency policy, DLT/TSP compliance for the target market, authentication/RBAC, PostgreSQL migrations, and a human review path. The Twilio callbacks in this build validate provider signatures using the configured public URL. Do not use the local SQLite setup for production.
+The repository includes `synthetic_defaulters.csv`, containing fictional customer profiles. Every record is intended only for controlled testing. Import it through the dashboard or use the upload API.
 
-## Live AI voice demo to your own phone
+Required CSV columns:
 
-After the controlled Twilio pilot works, add `LIVE_AI_VOICE_ENABLED=true`, `OPENAI_API_KEY`, and an enabled `OPENAI_REALTIME_MODEL` to `.env`. The call then uses Twilio's bidirectional Media Stream to relay G.711 μ-law audio directly to and from the Realtime API; there is no audio conversion layer. Keep the API key on the server and test only with your own phone number.
+```text
+borrower_id, borrower_name, phone_number, loan_account_id, emi_amount,
+days_past_due, consent_to_contact, permitted_to_call
+```
 
-The call flow is `Twilio → wss://your-domain/api/telephony/twilio/media → Realtime API → Twilio`. The public endpoint must support both HTTPS and secure WebSockets (`wss`). This demo uses a constrained script and saves returned caller/agent transcripts to the call record; it is not ready for borrower calls.
+## Live voice-demo setup
+
+Create a local `.env` file. It is intentionally ignored by Git.
+
+```dotenv
+VOICE_PROVIDER=twilio
+LIVE_CALLS_ENABLED=true
+LIVE_AI_VOICE_ENABLED=true
+
+PUBLIC_BASE_URL=https://your-public-ngrok-domain
+TWILIO_ACCOUNT_SID=...
+TWILIO_AUTH_TOKEN=...
+TWILIO_FROM_NUMBER=+1...
+
+OPENAI_API_KEY=...
+OPENAI_REALTIME_MODEL=gpt-realtime
+ORGANISATION_NAME=DebtAssist Demo
+```
+
+Expose the API before placing a call:
+
+```powershell
+ngrok http 8000
+```
+
+Use only a staff-owned, consented test number. Twilio trial accounts may play a trial announcement before the agent starts speaking.
+
+## Conversation guardrails
+
+The voice agent is deliberately constrained:
+
+- Verifies identity before disclosing synthetic account details.
+- Uses the profile context as a gentle cue, never as an assertion about the caller.
+- Does not request payment credentials, take payments, negotiate terms, threaten, or make legal claims.
+- Stops repayment discussion for hardship, disputes, opt-outs, distress, abusive language, or a human-agent request.
+- Clarifies ambiguous dates and times rather than guessing.
+
+## Useful commands
+
+```powershell
+# Run backend checks
+py -m pytest -q
+py -m ruff check app
+
+# Build the dashboard
+npm run build
+
+# Run development dashboard
+npm run dev
+```
+
+## Project structure
+
+```text
+app/
+  main.py          FastAPI routes and webhook handlers
+  realtime.py      Twilio ↔ OpenAI Realtime voice bridge
+  telephony.py     Twilio provider adapter
+  demo_context.py  Synthetic profile context
+src/
+  main.jsx         React dashboard
+  *.css            Dashboard styling
+docs/
+  workflow.svg     Architecture/workflow visual
+```
+
+## Production note
+
+This is a controlled demonstration, not a production collections platform. Production deployment requires approved compliance policies, calling-window and frequency controls, authentication/RBAC, managed secrets, durable storage, legal review, and a staffed human escalation process.
